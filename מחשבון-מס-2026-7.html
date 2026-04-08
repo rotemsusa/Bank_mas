@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>סימולטור תלוש שכר 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+  --accent:#3b82f6;--accent2:#06b6d4;--gold:#f59e0b;--green:#10b981;
+  --red:#ef4444;--purple:#a855f7;--text:#e2e8f0;--muted:#64748b;--light:#94a3b8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,0.04)1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.04)1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:28px 14px 64px;}
+
+.header{text-align:center;margin-bottom:22px;animation:fadeDown .6s ease both;}
+.badge{display:inline-block;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.2));border:1px solid rgba(59,130,246,0.4);color:var(--accent2);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:10px;}
+h1{font-size:clamp(22px,5vw,36px);font-weight:900;background:linear-gradient(135deg,#e2e8f0 30%,#3b82f6 80%,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.subtitle{color:var(--muted);font-size:12px;}
+
+/* Guide accordion */
+.guide-toggle{width:100%;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);border-radius:12px;color:var(--accent2);font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;transition:all .2s;}
+.guide-toggle:hover{background:rgba(6,182,212,0.14);}
+.guide-toggle .arr{transition:transform .3s;font-size:12px;}
+.guide-toggle.open .arr{transform:rotate(180deg);}
+.guide-body{display:none;background:rgba(6,182,212,0.05);border:1px solid rgba(6,182,212,0.2);border-radius:12px;padding:16px;margin-bottom:14px;animation:fadeUp .3s ease;}
+.guide-body.show{display:block;}
+.guide-step{display:flex;gap:10px;margin-bottom:14px;}
+.guide-step:last-child{margin-bottom:0;}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--accent2);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-body{flex:1;}
+.step-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.step-desc{font-size:11px;color:var(--light);line-height:1.6;}
+.step-desc strong{color:var(--accent2);}
+.step-desc .ex{display:block;margin-top:6px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:7px;padding:7px 10px;font-size:10px;color:var(--light);line-height:1.7;}
+.step-desc .ex span{color:var(--gold);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;animation:fadeUp .6s ease both;}
+.ctitle{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.ctitle::before{content:'';width:3px;height:13px;border-radius:2px;flex-shrink:0;background:var(--accent);}
+.ctitle.gold::before{background:var(--gold);}
+.ctitle.green::before{background:var(--green);}
+.ctitle.purple::before{background:var(--purple);}
+.ctitle.red::before{background:var(--red);}
+
+label{display:block;font-size:11px;color:var(--light);margin-bottom:5px;}
+.iw{position:relative;margin-bottom:12px;}
+.iw .sym{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
+input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px 10px 34px;font-family:'Heebo',sans-serif;font-size:17px;font-weight:700;color:var(--text);outline:none;transition:border-color .2s;direction:ltr;text-align:right;}
+input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.12);}
+
+.toggle-group{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.tbtn{padding:8px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.tbtn.active{background:rgba(59,130,246,0.15);border-color:var(--accent);color:var(--accent2);}
+
+.slider-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.sval{font-size:12px;font-weight:700;color:var(--accent2);background:rgba(6,182,212,0.1);padding:2px 9px;border-radius:5px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border);outline:none;cursor:pointer;margin-bottom:14px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px rgba(59,130,246,0.2);}
+
+.presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.pbtn{padding:4px 9px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Heebo',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.pbtn:hover,.pbtn.active{background:rgba(245,158,11,0.15);border-color:var(--gold);color:var(--gold);}
+
+/* Base salary box */
+.base-box{background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.25);border-radius:11px;padding:13px;margin-bottom:10px;}
+.base-box-title{font-size:11px;font-weight:700;color:#c084fc;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.base-box-title::before{content:'';width:3px;height:11px;background:#a855f7;border-radius:2px;}
+.base-box .iw{margin-bottom:6px;}
+.base-box input[type=number]{font-size:15px;border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.07);}
+.base-pct{font-size:10px;color:#a855f7;margin-top:4px;min-height:14px;}
+.base-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.base-pbtn{padding:4px 8px;border-radius:6px;border:1px solid rgba(168,85,247,0.3);background:transparent;color:#a855f7;font-family:'Heebo',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.base-pbtn:hover,.base-pbtn.active{background:rgba(168,85,247,0.15);}
+
+/* Deduction rows */
+.dr{display:grid;grid-template-columns:1fr 74px 66px;gap:7px;align-items:center;margin-bottom:9px;padding:10px 11px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
+.dr-name{font-size:12px;font-weight:600;color:var(--text);}
+.dr-sub{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.dr-sub .base{color:#a855f7;font-weight:600;}
+.pw{position:relative;}
+.pw .ps{position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;pointer-events:none;}
+.di{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:5px 22px 5px 6px;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;color:var(--text);outline:none;direction:ltr;text-align:right;transition:border-color .2s;}
+.di:focus{border-color:var(--accent);}
+.damt{font-size:11px;font-weight:700;color:var(--red);text-align:left;direction:ltr;}
+
+/* Custom */
+.cdr{display:grid;grid-template-columns:1fr 94px 28px;gap:6px;align-items:center;margin-bottom:8px;}
+.cni{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Heebo',sans-serif;font-size:12px;color:var(--text);outline:none;width:100%;}
+.cni:focus{border-color:var(--accent);}
+.caw{position:relative;}
+.caw .sym{position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:11px;}
+.cai{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 6px 6px 22px;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;color:var(--text);outline:none;direction:ltr;text-align:right;}
+.del{width:26px;height:26px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#ef4444;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.add-btn{width:100%;padding:8px;border-radius:9px;border:1px dashed var(--border);background:transparent;color:var(--muted);font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:3px;}
+.add-btn:hover{border-color:var(--accent);color:var(--accent2);}
+
+.calc-btn{width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-family:'Heebo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(59,130,246,0.3);}
+.calc-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(59,130,246,0.4);}
+
+/* Brackets */
+.btable{width:100%;border-collapse:collapse;table-layout:fixed;}
+.btable thead tr{border-bottom:1px solid var(--border);}
+.btable th{padding:6px 3px;font-size:9px;font-weight:700;color:var(--muted);text-align:center;white-space:nowrap;}
+.btable th:first-child{width:26px;}
+.btable th:last-child{width:46px;}
+.yh25{color:#f87171!important;}
+.yh26{color:#34d399!important;}
+.btable td{padding:7px 3px;border-bottom:1px dashed rgba(255,255,255,0.05);vertical-align:middle;}
+.btable tr:last-child td{border-bottom:none;}
+.btable tr.bactive td{background:rgba(59,130,246,0.07);}
+.rc{text-align:center;font-weight:800;font-size:14px;}
+.rng{direction:ltr;text-align:center;font-size:11px;white-space:nowrap;}
+.rng.y25{color:#94a3b8;}
+.rng.y26{color:var(--text);}
+.dc{text-align:center;font-size:10px;font-weight:700;white-space:nowrap;}
+.dp{color:var(--green);}
+.dn{color:var(--muted);}
+
+/* Results */
+.results{display:none;animation:fadeUp .5s ease both;}
+.results.show{display:block;}
+.net-hero{text-align:center;padding:20px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.nl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.na{font-size:clamp(34px,8vw,50px);font-weight:900;color:var(--green);line-height:1;margin-bottom:3px;}
+.ns{font-size:11px;color:var(--muted);}
+.payslip{background:var(--surface2);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.ph{background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(6,182,212,0.15));padding:12px 16px;border-bottom:1px solid var(--border);}
+.pt{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px dashed rgba(255,255,255,0.05);}
+.pr:last-child{border-bottom:none;}
+.pr.tot{background:rgba(255,255,255,0.03);border-top:1px solid var(--border);}
+.pr.tot2{background:rgba(16,185,129,0.05);border-top:1px solid var(--border);}
+.pk{font-size:12px;color:var(--light);}
+.pk .sub{font-size:9px;color:var(--muted);display:block;}
+.pv{font-size:13px;font-weight:700;}
+.pv.r{color:var(--red);}
+.pv.g{color:var(--green);}
+.pv.b{color:var(--accent2);}
+.pv.gold{color:var(--gold);}
+.pv.purple{color:var(--purple);}
+.blr{display:flex;justify-content:space-between;margin-bottom:4px;}
+.bl{font-size:10px;color:var(--muted);}
+.bp{font-size:10px;font-weight:700;}
+.bt{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px;}
+.bf{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.34,1.56,.64,1);width:0;}
+.bag{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:12px;}
+.bac{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.bac.old{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);}
+.bac.new{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05);}
+.bay{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:700;}
+.bac.old .bay{color:#ef4444;}
+.bac.new .bay{color:var(--green);}
+.baa{font-size:18px;font-weight:900;}
+.bac.old .baa{color:#ef4444;}
+.bac.new .baa{color:var(--green);}
+.bas{font-size:9px;color:var(--muted);margin-top:2px;}
+.barrow{text-align:center;font-size:20px;color:var(--green);}
+.sav{background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(6,182,212,0.1));border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;text-align:center;}
+.savt{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:4px;}
+.sava{font-size:28px;font-weight:900;color:var(--green);}
+.savd{font-size:11px;color:var(--muted);margin-top:3px;}
+.inote{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:9px;padding:11px 13px;font-size:11px;color:#d97706;margin-top:12px;line-height:1.6;}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){.rng{font-size:10px;}.baa{font-size:15px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="badge">סימולטור תלוש 2026</div>
+  <h1>מחשבון שכר מלא</h1>
+  <p class="subtitle">מס הכנסה · ביטוח לאומי · פנסיה · קרן השתלמות</p>
+</div>
+
+<!-- GUIDE -->
+<button class="guide-toggle" onclick="toggleGuide(this)">
+  📖 איך להשתמש במחשבון? <span class="arr">▼</span>
+</button>
+<div class="guide-body" id="guideBody">
+
+  <div class="guide-step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">הזן שכר ברוטו</div>
+      <div class="step-desc">
+        הברוטו הוא <strong>הסכום הכולל לפני כל ניכוי</strong> — כפי שרשום בתלוש שלך בשורת "ברוטו".
+        <span class="ex">בתלוש: <span>ברוטו ₪22,140</span> → הזן 22140</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">בסיס חישוב פנסיה — השכר הקובע</div>
+      <div class="step-desc">
+        הפנסיה <strong>לא מחושבת על כל הברוטו</strong> — רק על רכיבי שכר מוגדרים בחוזה.
+        חפש בתלוש את שורות הפנסיה (יכול להיקרא "מיטבדש", "מנורה", "הראל" וכו') וראה מה כתוב ב<strong>"יתרה"</strong> — זה הבסיס.
+        <span class="ex">
+          בתלוש: מיטבדש מק.יס יתרה <span>₪16,324</span> + מק.ען <span>₪3,230</span> + מק.הה <span>₪1,597</span><br>
+          → סכום: <span>₪21,151</span> → הזן כבסיס לפנסיה
+        </span>
+        אם אין לך תלוש — השתמש ב-<strong>100% מהברוטו</strong> כהערכה, או <strong>75–80%</strong> אם יש לך תוספות שכר שאינן חלק מהפנסיה.
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">בסיס לחישוב קרן השתלמות</div>
+      <div class="step-desc">
+        הקרן מחושבת על בסיס <strong>שונה מהפנסיה</strong> — לרוב רק שכר היסוד.
+        חפש בתלוש את שורת <strong>קרן ההשתלמות</strong> (יכולה להיקרא "כלל", "מגדל", "הפניקס" וכו') וראה מה ב<strong>"יתרה"</strong>.
+        <span class="ex">
+          בתלוש: כלל קהש יתרה <span>₪16,128</span> × 2.5% = ₪403<br>
+          → הזן <span>₪16,128</span> כבסיס לקרן השתלמות
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <div class="step-title">ניכויי משרד — ניכויים נוספים</div>
+      <div class="step-desc">
+        ועד עובדים, ביטוח הדדי, שיפוצים, אגרות — הוסף אותם <strong>כניכויים חופשיים</strong> בסכום קבוע.
+        <span class="ex">
+          בתלוש: ועד הנהל המכס <span>₪60</span> + ביטוח הדדי <span>₪21</span> + שיפוצים <span>₪395</span><br>
+          → הוסף כל אחד בנפרד בחלק "ניכויים נוספים"
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <div class="step-title">נקודות זיכוי</div>
+      <div class="step-desc">
+        בחר לפי מצבך המשפחתי. אם אתה לא בטוח — <strong>2.25 לרווק/ה</strong>, <strong>2.75 לנשוי/אה</strong>.
+        על כל ילד נוסף יש תוספת נקודות (שנתי/חד פעמי — המחשבון מחשב רק הבסיסי).
+      </div>
+    </div>
+  </div>
+
+</div><!-- /guide-body -->
+
+<!-- SALARY -->
+<div class="card">
+  <div class="ctitle">שכר ברוטו</div>
+  <div class="toggle-group">
+    <button class="tbtn active" onclick="setMode('monthly')">חודשי</button>
+    <button class="tbtn" onclick="setMode('annual')">שנתי</button>
+  </div>
+  <label id="inputLabel">שכר ברוטו חודשי (₪)</label>
+  <div class="iw">
+    <span class="sym">₪</span>
+    <input type="number" id="salaryInput" placeholder="0" min="0" oninput="onSalaryInput(this.value)">
+  </div>
+  <div class="slider-row">
+    <label style="margin:0;font-size:11px">סליידר</label>
+    <span class="sval" id="sliderDisplay">₪ 0</span>
+  </div>
+  <input type="range" id="salarySlider" min="0" max="80000" step="500" value="0" oninput="onSliderInput(this.value)">
+</div>
+
+<!-- CREDIT POINTS -->
+<div class="card">
+  <div class="ctitle gold">נקודות זיכוי (ערך נקודה: ₪242/חודש)</div>
+  <div class="iw">
+    <span class="sym" style="color:var(--gold);font-size:11px">נק'</span>
+    <input type="number" id="creditPoints" value="2.25" min="0" max="30" step="0.25" oninput="updateCreditDisplay()" style="border-color:rgba(245,158,11,0.3);">
+  </div>
+  <div class="presets">
+    <button class="pbtn active" onclick="setCredit(2.25)">2.25 רווק/ה</button>
+    <button class="pbtn" onclick="setCredit(2.75)">2.75 נשוי/אה</button>
+    <button class="pbtn" onclick="setCredit(3.5)">3.5 +ילד 1</button>
+    <button class="pbtn" onclick="setCredit(4.25)">4.25 +2 ילדים</button>
+    <button class="pbtn" onclick="setCredit(5)">5.0 +3 ילדים</button>
+  </div>
+  <div style="margin-top:7px;font-size:11px;color:var(--gold)" id="creditCalcDisplay">ניכוי חודשי: <strong>₪ 545</strong></div>
+</div>
+
+<!-- BITUACH LEUMI -->
+<div class="card">
+  <div class="ctitle">ביטוח לאומי ומס בריאות — על ברוטו</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:12px;background:var(--surface2);border-radius:8px;padding:8px 10px;line-height:1.5;">
+    מחושב על <strong style="color:var(--accent2)">הברוטו המלא</strong> | תקרה תחתונה ₪7,522 | תקרה עליונה ₪47,465
+  </div>
+  <div class="dr">
+    <div><div class="dr-name">ביטוח לאומי — עד ₪7,522</div><div class="dr-sub">ברירת מחדל עובד שכיר: 0.4%</div></div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="bil_low" value="0.4" min="0" max="20" step="0.1" oninput="recalc()"></div>
+    <span class="damt" id="bil_low_amt">₪ 0</span>
+  </div>
+  <div class="dr">
+    <div><div class="dr-name">ביטוח לאומי — ₪7,523–₪47,465</div><div class="dr-sub">ברירת מחדל עובד שכיר: 7%</div></div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="bil_high" value="7" min="0" max="25" step="0.1" oninput="recalc()"></div>
+    <span class="damt" id="bil_high_amt">₪ 0</span>
+  </div>
+  <div class="dr">
+    <div><div class="dr-name">מס בריאות — עד ₪7,522</div><div class="dr-sub">ברירת מחדל: 3.1%</div></div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="health_low" value="3.1" min="0" max="20" step="0.1" oninput="recalc()"></div>
+    <span class="damt" id="health_low_amt">₪ 0</span>
+  </div>
+  <div class="dr">
+    <div><div class="dr-name">מס בריאות — מעל ₪7,522</div><div class="dr-sub">ברירת מחדל: 5%</div></div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="health_high" value="5" min="0" max="20" step="0.1" oninput="recalc()"></div>
+    <span class="damt" id="health_high_amt">₪ 0</span>
+  </div>
+</div>
+
+<!-- PENSION -->
+<div class="card">
+  <div class="ctitle purple">פנסיה וקרן השתלמות — על שכר קובע</div>
+
+  <div style="font-size:10px;color:#a855f7;background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:9px 11px;margin-bottom:14px;line-height:1.6;">
+    ⚡ פנסיה וקרן השתלמות מחושבות על <strong>בסיסי שכר שונים</strong> — הגדר כל אחד בנפרד
+  </div>
+
+  <!-- בסיס פנסיה -->
+  <div class="base-box">
+    <div class="base-box-title">בסיס חישוב פנסיה</div>
+    <label style="color:#c084fc;font-size:10px;">הבסיס שעליו מחושבת הפנסיה — בתלוש חפש את שורות הפנסיה וסכם את "יתרה" (₪)</label>
+    <div class="iw" style="margin-bottom:4px">
+      <span class="sym" style="color:#a855f7">₪</span>
+      <input type="number" id="pension_base" placeholder="= ברוטו אם ריק" min="0" oninput="recalc()" style="border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.06);font-size:15px;">
+    </div>
+    <div class="base-pct" id="pension_base_pct"></div>
+    <div class="base-presets">
+      <button class="base-pbtn" onclick="setBase('pension_base',100)">100% ברוטו</button>
+      <button class="base-pbtn" onclick="setBase('pension_base',80)">80% ברוטו</button>
+      <button class="base-pbtn" onclick="setBase('pension_base',75)">75% ברוטו</button>
+      <button class="base-pbtn" onclick="clearBase('pension_base','pension_base_pct')">נקה (=ברוטו)</button>
+    </div>
+  </div>
+
+  <div class="dr" style="border-color:rgba(168,85,247,0.2);">
+    <div>
+      <div class="dr-name">פנסיה עובד</div>
+      <div class="dr-sub">ברירת מחדל: 6% | ניתן לשנות לפי תלוש<br><span class="base" id="pension_base_lbl">בסיס: ₪ 0</span></div>
+    </div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="pension" value="6" min="0" max="20" step="0.5" oninput="recalc()"></div>
+    <span class="damt" id="pension_amt">₪ 0</span>
+  </div>
+
+  <!-- בסיס קרן השתלמות -->
+  <div class="base-box" style="margin-top:14px">
+    <div class="base-box-title">בסיס חישוב קרן השתלמות</div>
+    <label style="color:#c084fc;font-size:10px;">הבסיס שעליו מחושבת הקרן — בתלוש חפש שורת "קרן השתלמות" וראה את "יתרה" (₪)</label>
+    <div class="iw" style="margin-bottom:4px">
+      <span class="sym" style="color:#a855f7">₪</span>
+      <input type="number" id="keren_base" placeholder="= ברוטו אם ריק" min="0" oninput="recalc()" style="border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.06);font-size:15px;">
+    </div>
+    <div class="base-pct" id="keren_base_pct"></div>
+    <div class="base-presets">
+      <button class="base-pbtn" onclick="setBase('keren_base',100)">100% ברוטו</button>
+      <button class="base-pbtn" onclick="setBase('keren_base',75)">75% ברוטו</button>
+      <button class="base-pbtn" onclick="setBase('keren_base',70)">70% ברוטו</button>
+      <button class="base-pbtn" onclick="clearBase('keren_base','keren_base_pct')">נקה (=ברוטו)</button>
+    </div>
+  </div>
+
+  <div class="dr" style="border-color:rgba(168,85,247,0.2);margin-top:10px;">
+    <div>
+      <div class="dr-name">קרן השתלמות עובד</div>
+      <div class="dr-sub">ברירת מחדל: 2.5% | ניתן לשנות לפי תלוש<br><span class="base" id="keren_base_lbl">בסיס: ₪ 0</span></div>
+    </div>
+    <div class="pw"><span class="ps">%</span><input class="di" type="number" id="keren" value="0" min="0" max="10" step="0.5" oninput="recalc()"></div>
+    <span class="damt" id="keren_amt">₪ 0</span>
+  </div>
+
+  <div style="margin-top:8px;padding:9px 11px;background:var(--surface2);border-radius:9px;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;">
+    <span>💡 <strong style="color:var(--light)">עובד מדינה לדוגמה:</strong> פנסיה 7%, קרן 2.5%</span>
+    <button onclick="setGovt()" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;border-radius:6px;padding:4px 10px;font-family:'Heebo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">הגדר עובד מדינה</button>
+  </div>
+</div>
+
+<!-- CUSTOM -->
+<div class="card">
+  <div class="ctitle gold">ניכויים נוספים</div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:10px;">ועד, ביטוח הדדי, שיפוצים, אגרות — הזן שם וסכום חודשי קבוע</div>
+  <div id="customList"></div>
+  <button class="add-btn" onclick="addCustom()">+ הוסף ניכוי</button>
+</div>
+
+<!-- CALC BUTTON -->
+<div style="margin-bottom:14px;">
+  <button class="calc-btn" onclick="calculate()">▶ חשב תלוש מלא</button>
+</div>
+
+<!-- BRACKETS TABLE -->
+<div class="card" style="animation-delay:.15s">
+  <div class="ctitle gold">השוואת מדרגות — 2025 מול 2026</div>
+  <table class="btable">
+    <thead>
+      <tr><th>שיעור</th><th class="yh25">טווח 2025</th><th class="yh26">טווח 2026</th><th>הרחבה</th></tr>
+    </thead>
+    <tbody id="bracketsTbody"></tbody>
+  </table>
+</div>
+
+<!-- RESULTS -->
+<div class="results" id="results">
+  <div class="card">
+    <div class="ctitle green">תלוש שכר — סיכום</div>
+    <div class="net-hero">
+      <div class="nl">שכר נטו לתשלום</div>
+      <div class="na" id="r_net">₪ 0</div>
+      <div class="ns" id="r_net_sub"></div>
+    </div>
+    <div class="payslip">
+      <div class="ph"><div class="pt">📋 פירוט ניכויים</div></div>
+      <div class="pr"><div class="pk">שכר ברוטו</div><div class="pv b" id="r_gross">₪ 0</div></div>
+      <div class="pr"><div class="pk">מס הכנסה<span class="sub" id="r_tax_sub"></span></div><div class="pv r" id="r_tax">₪ 0</div></div>
+      <div class="pr"><div class="pk">ביטוח לאומי</div><div class="pv r" id="r_bil">₪ 0</div></div>
+      <div class="pr"><div class="pk">מס בריאות</div><div class="pv r" id="r_health">₪ 0</div></div>
+      <div class="pr"><div class="pk">פנסיה עובד<span class="sub" id="r_pension_sub"></span></div><div class="pv purple" id="r_pension">₪ 0</div></div>
+      <div class="pr" id="r_keren_row"><div class="pk">קרן השתלמות<span class="sub" id="r_keren_sub"></span></div><div class="pv purple" id="r_keren">₪ 0</div></div>
+      <div id="r_custom_rows"></div>
+      <div class="pr tot"><div class="pk" style="font-weight:700;color:var(--text)">סה"כ ניכויים</div><div class="pv r" id="r_total_ded">₪ 0</div></div>
+      <div class="pr tot2"><div class="pk" style="font-weight:700;color:var(--text)">נטו לתשלום</div><div class="pv g" style="font-size:17px" id="r_net2">₪ 0</div></div>
+    </div>
+    <div id="barSection"></div>
+    <div style="margin-top:12px">
+      <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:7px;">
+        <span style="width:3px;height:13px;background:var(--gold);border-radius:2px;display:inline-block"></span>
+        חיסכון ממס הכנסה — עדכון 2026
+      </div>
+      <div class="bag">
+        <div class="bac old"><div class="bay">🔴 2025</div><div class="baa" id="r_tax25">₪ 0</div><div class="bas">מס הכנסה</div></div>
+        <div class="barrow">→</div>
+        <div class="bac new"><div class="bay">🟢 2026</div><div class="baa" id="r_tax26">₪ 0</div><div class="bas">מס הכנסה</div></div>
+      </div>
+      <div class="sav">
+        <div class="savt">✨ חיסכון חודשי</div>
+        <div class="sava" id="r_savings">₪ 0</div>
+        <div class="savd" id="r_savings_yr">שנתי: ₪ 0</div>
+      </div>
+    </div>
+    <div class="inote">⚠️ פנסיה וקרן השתלמות מחושבות על הבסיסים שהוגדרו בנפרד. ביטוח לאומי על ברוטו מלא עד ₪47,465. אינו כולל זיכויים מיוחדים.</div>
+  </div>
+</div>
+
+</div>
+<script>
+const CREDIT_POINT=2904/12;
+const BIL_LOWER=7522,BIL_CEILING=47465;
+const B25=[{min:0,max:7010,rate:.10},{min:7010,max:10060,rate:.14},{min:10060,max:16150,rate:.20},{min:16150,max:22440,rate:.31},{min:22440,max:46690,rate:.35},{min:46690,max:Infinity,rate:.47}];
+const B26=[{min:0,max:7010,rate:.10,color:'#22c55e'},{min:7010,max:10060,rate:.14,color:'#84cc16'},{min:10060,max:19000,rate:.20,color:'#eab308'},{min:19000,max:25100,rate:.31,color:'#f97316'},{min:25100,max:46690,rate:.35,color:'#ef4444'},{min:46690,max:Infinity,rate:.47,color:'#dc2626'}];
+
+function fmt(n){return Math.round(n).toLocaleString('he-IL');}
+function fmtF(n){return n.toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:1});}
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+
+let mode='monthly';
+function gross(){const r=v('salaryInput');return mode==='monthly'?r:r/12;}
+function getBase(fieldId){const k=v(fieldId);return k>0?Math.min(k,gross()):gross();}
+
+function calcTax(g,brackets,credit){
+  let tax=0,bd=[];
+  for(const b of brackets){if(g<=b.min)break;const t=Math.min(g,b.max)-b.min;const a=t*b.rate;tax+=a;bd.push({...b,taxable:t,amount:a});}
+  return{tax,netTax:Math.max(0,tax-credit),breakdown:bd};
+}
+function calcBIL(g){
+  const low=Math.min(g,BIL_LOWER),high=Math.max(0,Math.min(g,BIL_CEILING)-BIL_LOWER);
+  return{bil_low:low*(v('bil_low')/100),bil_high:high*(v('bil_high')/100),health_low:low*(v('health_low')/100),health_high:high*(v('health_high')/100)};
+}
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.tbtn').forEach((b,i)=>b.classList.toggle('active',(i===0&&m==='monthly')||(i===1&&m==='annual')));
+  document.getElementById('inputLabel').textContent=m==='monthly'?'שכר ברוטו חודשי (₪)':'שכר ברוטו שנתי (₪)';
+  document.getElementById('salarySlider').max=m==='monthly'?80000:960000;
+  document.getElementById('salarySlider').step=m==='monthly'?500:6000;
+}
+function onSalaryInput(val){
+  const n=parseFloat(val)||0;
+  document.getElementById('salarySlider').value=Math.min(n,mode==='monthly'?80000:960000);
+  document.getElementById('sliderDisplay').textContent='₪ '+fmt(n);
+  recalc();
+}
+function onSliderInput(val){
+  document.getElementById('salaryInput').value=val;
+  document.getElementById('sliderDisplay').textContent='₪ '+fmt(parseFloat(val)||0);
+  recalc();
+}
+
+function setBase(fieldId,pct){
+  const g=gross();
+  if(g>0)document.getElementById(fieldId).value=Math.round(g*pct/100);
+  recalc();
+}
+function clearBase(fieldId,pctId){
+  document.getElementById(fieldId).value='';
+  document.getElementById(pctId).textContent='';
+  recalc();
+}
+
+function setCredit(pts){
+  document.getElementById('creditPoints').value=pts;
+  updateCreditDisplay();
+  document.querySelectorAll('.presets .pbtn').forEach(b=>b.classList.toggle('active',b.textContent.trim().startsWith(pts.toString())));
+}
+function updateCreditDisplay(){
+  document.getElementById('creditCalcDisplay').innerHTML=`ניכוי חודשי: <strong>₪ ${fmt(v('creditPoints')*CREDIT_POINT)}</strong>`;
+}
+function setGovt(){document.getElementById('pension').value=7;document.getElementById('keren').value=2.5;recalc();}
+
+function recalc(){
+  const g=gross();if(g<=0)return;
+  const pb=getBase('pension_base'),kb=getBase('keren_base');
+  const{bil_low,bil_high,health_low,health_high}=calcBIL(g);
+  document.getElementById('bil_low_amt').textContent='₪ '+fmt(bil_low);
+  document.getElementById('bil_high_amt').textContent='₪ '+fmt(bil_high);
+  document.getElementById('health_low_amt').textContent='₪ '+fmt(health_low);
+  document.getElementById('health_high_amt').textContent='₪ '+fmt(health_high);
+  document.getElementById('pension_amt').textContent='₪ '+fmt(pb*(v('pension')/100));
+  document.getElementById('keren_amt').textContent='₪ '+fmt(kb*(v('keren')/100));
+  document.getElementById('pension_base_lbl').textContent=`בסיס: ₪${fmt(pb)}`;
+  document.getElementById('keren_base_lbl').textContent=`בסיס: ₪${fmt(kb)}`;
+  const showPct=(val,elId)=>{const p=g>0&&val>0?(val/g*100):0;document.getElementById(elId).textContent=val>0?`${fmtF(p)}% מהברוטו`:'';}
+  showPct(v('pension_base'),'pension_base_pct');
+  showPct(v('keren_base'),'keren_base_pct');
+}
+
+let cid=0;
+function addCustom(){
+  const id=++cid;const d=document.createElement('div');d.className='cdr';d.id='cd_'+id;
+  d.innerHTML=`<input class="cni" type="text" placeholder="שם הניכוי..." id="cn_${id}"><div class="caw"><span class="sym">₪</span><input class="cai" type="number" placeholder="0" id="ca_${id}" min="0" step="10"></div><button class="del" onclick="document.getElementById('cd_${id}').remove()">×</button>`;
+  document.getElementById('customList').appendChild(d);
+}
+
+function buildTable(){
+  const tb=document.getElementById('bracketsTbody');tb.innerHTML='';
+  B26.forEach((b26,i)=>{
+    const b25=B25[i];const rate=Math.round(b26.rate*100);
+    const r25=b25.max===Infinity?`${fmt(b25.min)}+`:`${fmt(b25.min)} – ${fmt(b25.max)}`;
+    const r26=b26.max===Infinity?`${fmt(b26.min)}+`:`${fmt(b26.min)} – ${fmt(b26.max)}`;
+    const w25=b25.max===Infinity?0:(b25.max-b25.min),w26=b26.max===Infinity?0:(b26.max-b26.min);
+    const diff=w26-w25;const dt=b26.max===Infinity?'—':(diff>0?`+${fmt(diff)}`:(diff===0?'—':fmt(diff)));
+    const tr=document.createElement('tr');tr.id=`br-${i}`;
+    tr.innerHTML=`<td class="rc" style="color:${b26.color}">${rate}%</td><td class="rng y25">${r25}</td><td class="rng y26">${r26}</td><td class="dc ${diff>0?'dp':'dn'}">${dt}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function toggleGuide(btn){
+  btn.classList.toggle('open');
+  const body=document.getElementById('guideBody');
+  body.classList.toggle('show');
+}
+
+function calculate(){
+  const g=gross();if(g<=0){alert('אנא הכנס שכר תקין');return;}
+  const pb=getBase('pension_base'),kb=getBase('keren_base');
+  const pts=v('creditPoints'),credit=pts*CREDIT_POINT;
+  const{tax:t26,netTax:incomeTax26,breakdown}=calcTax(g,B26,credit);
+  const{netTax:incomeTax25}=calcTax(g,B25,credit);
+  const{bil_low,bil_high,health_low,health_high}=calcBIL(g);
+  const bil=bil_low+bil_high,health=health_low+health_high;
+  const pension=pb*(v('pension')/100),keren=kb*(v('keren')/100);
+  let customTotal=0,customRows='';
+  document.querySelectorAll('[id^="cd_"]').forEach(row=>{
+    const id=row.id.replace('cd_','');
+    const name=document.getElementById('cn_'+id)?.value||'ניכוי';
+    const amt=parseFloat(document.getElementById('ca_'+id)?.value)||0;
+    customTotal+=amt;if(amt>0)customRows+=`<div class="pr"><div class="pk">${name}</div><div class="pv gold">₪ ${fmt(amt)}</div></div>`;
+  });
+  const totalDed=incomeTax26+bil+health+pension+keren+customTotal;
+  const net=g-totalDed;
+  const savings=Math.max(0,incomeTax25-incomeTax26);
+
+  document.getElementById('r_net').textContent='₪ '+fmt(net);
+  document.getElementById('r_net2').textContent='₪ '+fmt(net);
+  document.getElementById('r_net_sub').textContent=`מתוך ברוטו ₪${fmt(g)} | ${fmtF(net/g*100)}% נטו`;
+  document.getElementById('r_gross').textContent='₪ '+fmt(g);
+  document.getElementById('r_tax').textContent='₪ '+fmt(incomeTax26);
+  document.getElementById('r_tax_sub').textContent=`שיעור אפקטיבי ${fmtF(incomeTax26/g*100)}%`;
+  document.getElementById('r_bil').textContent='₪ '+fmt(bil);
+  document.getElementById('r_health').textContent='₪ '+fmt(health);
+  document.getElementById('r_pension').textContent=pension>0?'₪ '+fmt(pension):'—';
+  document.getElementById('r_pension_sub').textContent=`על בסיס ₪${fmt(pb)}`;
+  document.getElementById('r_keren').textContent=keren>0?'₪ '+fmt(keren):'—';
+  document.getElementById('r_keren_sub').textContent=keren>0?`על בסיס ₪${fmt(kb)}`:'';
+  document.getElementById('r_keren_row').style.display=v('keren')>0?'':'none';
+  document.getElementById('r_custom_rows').innerHTML=customRows;
+  document.getElementById('r_total_ded').textContent='₪ '+fmt(totalDed);
+
+  const items=[{label:'מס הכנסה',val:incomeTax26,color:'#ef4444'},{label:'ביטוח לאומי',val:bil,color:'#f97316'},{label:'מס בריאות',val:health,color:'#eab308'},{label:'פנסיה',val:pension,color:'#a855f7'},{label:'קרן השתלמות',val:keren,color:'#3b82f6'}];
+  if(customTotal>0)items.push({label:'ניכויים נוספים',val:customTotal,color:'#06b6d4'});
+  let bars='';
+  items.filter(x=>x.val>0).forEach(x=>{const pct=x.val/g*100;bars+=`<div class="blr"><span class="bl">${x.label}</span><span class="bp" style="color:${x.color}">₪${fmt(x.val)} (${fmtF(pct)}%)</span></div><div class="bt"><div class="bf" style="background:${x.color}" data-w="${pct}%"></div></div>`;});
+  bars+=`<div class="blr"><span class="bl" style="color:var(--green);font-weight:600">נטו</span><span class="bp" style="color:var(--green)">₪${fmt(net)} (${fmtF(net/g*100)}%)</span></div><div class="bt"><div class="bf" style="background:var(--green)" data-w="${net/g*100}%"></div></div>`;
+  document.getElementById('barSection').innerHTML=bars;
+
+  document.getElementById('r_tax25').textContent='₪ '+fmt(incomeTax25);
+  document.getElementById('r_tax26').textContent='₪ '+fmt(incomeTax26);
+  document.getElementById('r_savings').textContent=savings>0?'₪ '+fmt(savings):'₪ 0';
+  document.getElementById('r_savings_yr').textContent=savings>0?`חיסכון שנתי: ₪ ${fmt(savings*12)}`:'אין הפרש';
+
+  B26.forEach((b,i)=>{const tr=document.getElementById(`br-${i}`);if(tr)tr.classList.toggle('bactive',g>b.min);});
+
+  const res=document.getElementById('results');res.classList.add('show');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('.bf').forEach(b=>{b.style.width=b.dataset.w;});}));
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('salaryInput').addEventListener('keydown',e=>{if(e.key==='Enter')calculate();});
+buildTable();updateCreditDisplay();
+</script>
+</body>
+</html>
